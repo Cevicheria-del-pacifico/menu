@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Menú | Cevichería del Pacífico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background: #f4f6f8;
+        }
+
+        header {
+            background: #12578E;
+            color: #fff;
+            text-align: center;
+            padding: 14px;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,.2);
+        }
+
+        #viewer {
+            padding: 12px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.12);
+        }
+
+        .loader {
+            text-align: center;
+            margin-top: 40px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    Cevichería del Pacífico
+</header>
+
+<div id="viewer">
+    <div class="loader">Cargando menú…</div>
+</div>
+
+<footer>
+    © Cevichería del Pacífico
+</footer>
+
+<!-- PDF.js MODERNO -->
+<script type="module">
+    import * as pdfjsLib from './pdfjs/pdf.min.mjs';
+
+    const url = './menu.pdf';
+    const container = document.getElementById('viewer');
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        './pdfjs/pdf.worker.min.mjs';
+
+    pdfjsLib.getDocument(url).promise
+        .then(pdf => {
+            container.innerHTML = '';
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                pdf.getPage(pageNum).then(page => {
+                    const scale = window.innerWidth < 768 ? 1.2 : 1.5;
+                    const viewport = page.getViewport({ scale });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    container.appendChild(canvas);
+
+                    page.render({
+                        canvasContext: context,
+                        viewport
+                    });
+                });
+            }
+        })
+        .catch(err => {
+            container.innerHTML = `
+                <p style="text-align:center;color:#c00;font-weight:600">
+                    Error al cargar el menú
+                </p>`;
+            console.error(err);
+        });
+</script>
+
+</body>
+</html>
